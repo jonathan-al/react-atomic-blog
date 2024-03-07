@@ -1,9 +1,6 @@
 import { faker } from "@faker-js/faker"
-import { createContext, useContext, useEffect, useState } from "react"
-
-// 1) Create context
-// This is basically a component
-const PostContext = createContext()
+import { useContext, useEffect, useState } from "react"
+import { PostContext, PostProvider } from "./PostContext"
 
 function createRandomPost() {
   return {
@@ -13,30 +10,7 @@ function createRandomPost() {
 }
 
 function App() {
-  const [posts, setPosts] = useState(() =>
-    Array.from({ length: 30 }, () => createRandomPost()),
-  )
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isFakeDark, setIsFakeDark] = useState(false)
-
-  // Derived state. These are the posts that will actually be displayed
-  const searchedPosts =
-    searchQuery.length > 0
-      ? posts.filter((post) =>
-          `${post.title} ${post.body}`
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()),
-        )
-      : posts
-
-  function handleAddPost(post) {
-    setPosts((posts) => [post, ...posts])
-  }
-
-  function handleClearPosts() {
-    setPosts([])
-  }
-
+  const [isFakeDark, setIsFakeDark] = useState(true)
   // Whenever `isFakeDark` changes, we toggle the `fake-dark-mode` class on the HTML element (see in "Elements" dev tool).
   useEffect(
     function () {
@@ -44,35 +18,22 @@ function App() {
     },
     [isFakeDark],
   )
-  // 2) Provide value to child components
+
   return (
-    <PostContext.Provider
-      value={{
-        posts: searchedPosts,
-        onAddPost: handleAddPost,
-        onClearPosts: handleClearPosts,
-        searchQuery,
-        setSearchQuery,
-      }}
-    >
-      <section>
-        <button
-          onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
-          className="btn-fake-dark-mode"
-        >
-          {isFakeDark ? "☀️" : "🌙"}
-        </button>
-        <Header
-          posts={searchedPosts}
-          onClearPosts={handleClearPosts}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-        <Main posts={searchedPosts} onAddPost={handleAddPost} />
-        <Archive onAddPost={handleAddPost} />
+    <section>
+      <button
+        onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
+        className="btn-fake-dark-mode"
+      >
+        {isFakeDark ? "☀️" : "🌙"}
+      </button>
+      <PostProvider>
+        <Header />
+        <Main />
+        <Archive />
         <Footer />
-      </section>
-    </PostContext.Provider>
+      </PostProvider>
+    </section>
   )
 }
 
